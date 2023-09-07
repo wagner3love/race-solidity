@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract RaceGame {
+    address public owner;
+    address public winner;
+    uint256 public raceEndTime;
+    bool public raceEnded;
+
+    event RaceStarted(uint256 endTime);
+    event RaceEnded(address winner);
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can perform this action");
+        _;
+    }
+
+    modifier raceNotEnded() {
+        require(!raceEnded, "The race has already ended");
+        _;
+    }
+
+    function startRace(uint256 durationInSeconds) external onlyOwner raceNotEnded {
+        raceEndTime = block.timestamp + durationInSeconds;
+        raceEnded = false;
+        emit RaceStarted(raceEndTime);
+    }
+
+    function enterRace() external payable raceNotEnded {
+        require(msg.value > 0, "You must send some ether to enter the race");
+        // Additional logic to manage participants and track their progress
+    }
+
+    function finishRace() external raceNotEnded {
+        require(block.timestamp >= raceEndTime, "The race is still ongoing");
+        // Determine the winner based on certain conditions, e.g., distance covered.
+        // Set the winner address and end the race.
+        winner = msg.sender;
+        raceEnded = true;
+        emit RaceEnded(winner);
+    }
+
+    function withdrawPrize() external {
+        require(raceEnded, "The race has not ended yet");
+        require(msg.sender == winner, "Only the winner can withdraw the prize");
+        // Transfer the prize money to the winner
+        payable(msg.sender).transfer(address(this).balance);
+    }
+
+    // Add additional functions for managing the race, participants, and payouts as needed.
+}
